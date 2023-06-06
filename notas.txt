@@ -1,0 +1,33 @@
+Logica del read
+1. Añado la system call al syscall_table n=3
+2. En io.c creo dos funciones y lo correspondiente al buffer_circular
+   - write_circular_buffer -> Añade el caracter captado por el teclado dentro del buffer circular 
+    - read_circular_buffer -> Lee el numero de caracteres que se le pasa por parametro del buffer circular
+3. El sys_read se encarga de llamar a la funcion read_circular_buffer y de devolver el numero de caracteres leidos
+
+
+Lógica screen support
+1. Añado las systemcall a la syscall_table
+2. En io.c para el gotoxy hago una funcion que modifica las variables globales de la posicion del cursor,
+    y hago las comprobaciones pertinentes para que no se salga de la pantalla
+3. Para el set_color modifico la variable global de color y en el printc hago que imprima con ese color
+ también hago las comprobaciones para que los colores sean valores váldos.
+
+ 
+
+Lógica shared memory
+1. shmat
+    En mm.c, en la función init_frames marcamos los 10 últimos como used, que será los que usaremos como shared
+    sys_shmat se hace la funcionalidad que se pide en el enunciado
+    Declaramos un vector de 10 posiciones que será el que usaremos para saber que frames están compartidos y cada vez que
+    se mapee una dirección a un frame compartido se hace ++ a la posición correspondiente del vector.
+    
+2. shmdt
+    sys_shmdt se hace la funcionalidad que se pide en el enunciado
+    Se hace -- a la posición correspondiente del vector de frames compartidos.
+    En caso de que el proceso sea el último que está usando el frame compartido y ese frame estaba marcado
+    para ser limpiado se limpia el frame.
+
+3. shmrm
+    Declaramos un vector de 10 posiciones que será el que usaremos para saber que frames compartidos están marcados
+    sys_shmrm marca en el vector el frame que se pide y si ese frame no está siendo usado por ningún proceso se limpia.
