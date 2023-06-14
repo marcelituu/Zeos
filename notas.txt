@@ -17,10 +17,9 @@ Lógica screen support
 
 Lógica shared memory
 1. shmat
-    En mm.c, en la función init_frames marcamos los 10 últimos como used, que será los que usaremos como shared
     sys_shmat se hace la funcionalidad que se pide en el enunciado
-    Declaramos un vector de 10 posiciones que será el que usaremos para saber que frames están compartidos y cada vez que
-    se mapee una dirección a un frame compartido se hace ++ a la posición correspondiente del vector.
+    Primero hago las comprobaciones necesarias para ver que los valores que se pasan por parámetro son válidos.
+    Le asigno a la addr el frame correspondiente e incremento el número de procesos que están usando ese frame.
     
 2. shmdt
     sys_shmdt se hace la funcionalidad que se pide en el enunciado
@@ -29,5 +28,30 @@ Lógica shared memory
     para ser limpiado se limpia el frame.
 
 3. shmrm
-    Declaramos un vector de 10 posiciones que será el que usaremos para saber que frames compartidos están marcados
-    sys_shmrm marca en el vector el frame que se pide y si ese frame no está siendo usado por ningún proceso se limpia.
+    Simplemente marca el frame para ser limpiado.
+
+Para que funcione el shared memory hay que modificar el sys_fork de tal manera que tambien
+se haga la asignación de páginas compartidas al hijo. 
+En sys_exit se tiene que decrementar el número de procesos que están usando el frame compartido
+
+Lógica del COW
+
+1. Cuando en sys_fork se hace la asignación de páginas de datos ya no se hace la copia de la página
+    sino que se le asigna la misma pagina que el padre pero se pone como Read Only, de esta 
+    manera cunado el proceso hijo quiera modificar la página se producirá un page fault.
+
+2. Definimos un nuevo page_fault (en interrupt.c), en caso de que la dirección que haya dado
+page fault sea de una página de datos y la página sea de solo lectura se hace la copia de la página
+y se le asigna al proceso hijo. En caso de que haya dado un page fault en otra dirección se trata como
+un page fault normal.
+ 
+Muy Importante: Para que funcione el COW hay que pasarle el eip por la pila en entry.S 
+
+Archivos de interes
+En user-utils.S estan todos los wrappers de las llamdas a sistema
+En syscall_table.S esta la tabla de system calls
+En interrupt.c estan los handlers de las interrupciones
+En user.c estan las funciones de usuario, es el archivo para hacer pruebas sobretodo
+En entry.S codigo assembler que se ejecuta al hacer una interrupcion
+
+
